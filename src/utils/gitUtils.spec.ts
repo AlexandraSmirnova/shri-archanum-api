@@ -1,5 +1,6 @@
-const child = require('child_process');
-const { log, diff, showTree, showFileContent } = require('./gitUtils');
+import * as child from 'child_process';
+import { mocked } from 'ts-jest/utils'
+import { log, diff, showTree, showFileContent } from './gitUtils';
 
 
 jest.mock('../utils/fsUtils', () => ({
@@ -7,45 +8,47 @@ jest.mock('../utils/fsUtils', () => ({
 }));
 
 jest.mock('child_process');
+const mockedExec = mocked(child.exec);
 
-const defaultExecMock = (command, path, callback) => 
-    Promise.resolve().then(() => callback(null, 'test string'));
+const getExecMock = (stderr, stdout) =>
+    (command: string, path: object, callback): child.ChildProcess =>
+        Promise.resolve()
+            .then(() => callback(stderr, stdout)) as unknown as child.ChildProcess;
 
+const defaultExecMock = getExecMock(null, 'test string');
 
 describe('test log', () => {
     beforeEach(() => {
-        child.exec.mockImplementation(defaultExecMock);
+        mockedExec.mockImplementation(defaultExecMock);
     });
-    
+
     it('should correct handle git answer', async () => {
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
+
         await log('repo', 'hash', 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     })
 
     it('should correct handle empty git answer', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback(null, '')
-        ));
+        mockedExec.mockImplementation(getExecMock(null, ''));
+
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
+
         await log('repo', 'hash', 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("");
     });
 
     it('should run onError handler if error', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback('error')
-        ));
+        mockedExec.mockImplementation(getExecMock('error', null));
+
         let result = null;
         const onError = (response) => {
             result = response
@@ -61,7 +64,7 @@ describe('test log', () => {
         const onSuccess = (response) => {
             result = response
         }
-        
+
         await log('repo', undefined, '', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
@@ -71,38 +74,35 @@ describe('test log', () => {
 
 describe('test diff', () => {
     beforeEach(() => {
-        child.exec.mockImplementation(defaultExecMock);
+        mockedExec.mockImplementation(defaultExecMock);
     });
-    
+
     it('should correct handle git answer', async () => {
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
-        await diff('repo',  '', jest.fn(), onSuccess);
+
+        await diff('repo', '', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     })
 
     it('should correct handle empty git answer', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback(null, '')
-        ));
+        mockedExec.mockImplementation(getExecMock(null, ''));
+
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
+
         await diff('repo', 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("");
     });
 
     it('should run onError handler if error', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback('error')
-        ));
+        mockedExec.mockImplementation(getExecMock('error', null));
         let result = null;
         const onError = (response) => {
             result = response
@@ -117,44 +117,42 @@ describe('test diff', () => {
 
 describe('test showTree', () => {
     beforeEach(() => {
-        child.exec.mockImplementation(defaultExecMock);
+        mockedExec.mockImplementation(defaultExecMock);
     });
-    
+
     it('should correct handle git answer', async () => {
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
-        await showTree('repo',  'hash', 'args', jest.fn(), onSuccess);
+
+        await showTree('repo', 'hash', 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     })
 
     it('should correct handle empty git answer', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback(null, '')
-        ));
+        mockedExec.mockImplementation(getExecMock(null, ''));
+
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
-        await showTree('repo',  'hash', 'args', jest.fn(), onSuccess);
+
+        await showTree('repo', 'hash', 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("");
     });
 
     it('should run onError handler if error', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback('error')
-        ));
+        mockedExec.mockImplementation(getExecMock('error', null));
+
         let result = null;
         const onError = (response) => {
             result = response
         }
 
-        await showTree('repo',  'hash', 'args', onError, jest.fn());
+        await showTree('repo', 'hash', 'args', onError, jest.fn());
 
         expect(result).toBe("error");
     });
@@ -165,7 +163,7 @@ describe('test showTree', () => {
             result = response
         }
 
-        await showTree('repo',  undefined, 'args', jest.fn(), onSuccess);
+        await showTree('repo', undefined, 'args', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     });
@@ -176,7 +174,7 @@ describe('test showTree', () => {
             result = response
         }
 
-        await showTree('repo',  'hash', undefined, jest.fn(), onSuccess);
+        await showTree('repo', 'hash', undefined, jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     });
@@ -185,7 +183,7 @@ describe('test showTree', () => {
 
 describe('test showFileContent', () => {
     beforeEach(() => {
-        child.exec.mockImplementation(defaultExecMock);
+        mockedExec.mockImplementation(defaultExecMock );;
     });
 
     it('should correct handle git answer', async () => {
@@ -193,21 +191,20 @@ describe('test showFileContent', () => {
         const onSuccess = (response) => {
             result = response;
         }
-        
+
         await showFileContent('repo',  'hash', 'path', jest.fn(), onSuccess);
 
         expect(result).toBe("test string");
     });
 
     it('should correct handle empty git answer', async () => {
-        child.exec.mockImplementation((command, path, callback) => 
-            Promise.resolve().then(() => callback(null, '')
-        ));
+        mockedExec.mockImplementation(getExecMock(null, ''));
+
         let result = null;
         const onSuccess = (response) => {
             result = response;
         }
-        
+
         await showFileContent('repo', 'hash', 'path', jest.fn(), onSuccess);
 
         expect(result).toBe("");

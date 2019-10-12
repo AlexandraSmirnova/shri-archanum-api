@@ -1,4 +1,4 @@
-const { getRepositoryPath } = require('./fsUtils');
+import { getRepositoryPath } from './fsUtils';
 
 
 describe('test getRepositoryPath', () => {
@@ -14,18 +14,6 @@ describe('test getRepositoryPath', () => {
 
     it('return env.DIR if empty repository name', () => {
         const result = getRepositoryPath('');
-
-        expect(result).toBe(process.env.DIR);
-    });
-
-    it('return env.DIR if repository name is undefined', () => {
-        const result = getRepositoryPath();
-
-        expect(result).toBe(process.env.DIR);
-    });
-
-    it('return env.DIR if repository name is number', () => {
-        const result = getRepositoryPath(0);
 
         expect(result).toBe(process.env.DIR);
     });
