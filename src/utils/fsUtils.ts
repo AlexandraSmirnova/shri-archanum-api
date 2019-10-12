@@ -1,15 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 
-const isDirectory = (path: string): boolean => fs.lstatSync(path).isDirectory();
 
-const getRepositoryPath = (repName: string): string => {
+export const isDirectory = (path: string): boolean => fs.lstatSync(path).isDirectory();
+
+export const getRepositoryPath = (repName: string): string => {
     return typeof repName === 'string'
         ? path.join(process.env.DIR, repName)
         : process.env.DIR;
 };
 
-var deleteFolderRecursive = (path: string): void => {
+export const deleteFolderRecursive = (path: string): void => {
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach((file) => {
             const curPath = path + "/" + file;
@@ -23,9 +24,3 @@ var deleteFolderRecursive = (path: string): void => {
         fs.rmdirSync(path);
     }
 };
-
-module.exports = {
-    isDirectory,
-    getRepositoryPath,
-    deleteFolderRecursive
-}

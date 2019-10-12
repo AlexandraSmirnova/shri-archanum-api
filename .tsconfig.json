@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "strict": true,
+        "removeComments": true,
+        "allowJs": true,
+        "lib": [
+            "es2015"
+        ]
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

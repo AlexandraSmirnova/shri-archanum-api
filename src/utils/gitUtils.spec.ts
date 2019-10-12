@@ -1,5 +1,5 @@
 const child = require('child_process');
-const { log, diff, showTree, showFileContent } = require('./gitUtils.js');
+const { log, diff, showTree, showFileContent } = require('./gitUtils');
 
 
 jest.mock('../utils/fsUtils', () => ({
