@@ -11,7 +11,7 @@ jest.mock('child_process');
 const mockedExec = mocked(child.exec);
 
 const getExecMock = (stderr, stdout) =>
-    (command: string, path: object, callback): child.ChildProcess =>
+    (command: string, options: object, callback): child.ChildProcess =>
         Promise.resolve()
             .then(() => callback(stderr, stdout)) as unknown as child.ChildProcess;
 
