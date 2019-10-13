@@ -1,13 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { REPOS_ROOT } from '../env';
 
 
 export const isDirectory = (path: string): boolean => fs.lstatSync(path).isDirectory();
 
 export const getRepositoryPath = (repName: string): string => {
     return typeof repName === 'string'
-        ? path.join(process.env.DIR, repName)
-        : process.env.DIR;
+        ? path.join(REPOS_ROOT, repName)
+        : REPOS_ROOT;
 };
 
 export const deleteFolderRecursive = (path: string): void => {

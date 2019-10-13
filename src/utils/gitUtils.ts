@@ -1,14 +1,16 @@
-import { exec } from 'child_process';
+import { exec, ExecException } from 'child_process';
 import { getRepositoryPath } from './fsUtils';
+import { REPOS_ROOT } from '../env';
 
 
-type Callback = (string) => void;
+export type ErrorHandler = (arg: string | ExecException ) => void;
+export type SuccessHandler = (arg: string ) => void;
 
 export const execWrapper = (
     command: string, 
     path: string, 
-    onError: Callback, 
-    onSuccess: Callback
+    onError: ErrorHandler, 
+    onSuccess: SuccessHandler
 ) => {
     return exec(command, { cwd: path }, (err, stdout, stderr) => {
         if (err) {
@@ -21,10 +23,10 @@ export const execWrapper = (
 
 export const log = (
     repositoryId: string,
-    commitHash: string,
+    commitHash: string | undefined,
     args: string,
-    onError: Callback,
-    onSuccess: Callback
+    onError: ErrorHandler,
+    onSuccess: SuccessHandler
 ) => {
     const repositoryPath = getRepositoryPath(repositoryId);
 
@@ -34,8 +36,8 @@ export const log = (
 export const diff = (
     repositoryId: string,
     args: string, 
-    onError: Callback, 
-    onSuccess: Callback
+    onError: ErrorHandler, 
+    onSuccess: SuccessHandler
 ) => {
     const repositoryPath = getRepositoryPath(repositoryId);
 
@@ -44,10 +46,10 @@ export const diff = (
 
 export const showTree = (
     repositoryId: string,
-    commitHash: string,
-    path: string,
-    onError: Callback,
-    onSuccess: Callback
+    commitHash: string | undefined,
+    path: string | undefined,
+    onError: ErrorHandler,
+    onSuccess: SuccessHandler
 ) => {
     const repositoryPath = getRepositoryPath(repositoryId);
     const pathParams = commitHash && path
@@ -59,10 +61,10 @@ export const showTree = (
 
 export const showFileContent = (
     repositoryId: string,
-    commitHash: string,
-    path: string,
-    onError: Callback,
-    onSuccess: Callback
+    commitHash: string | undefined,
+    path: string | undefined,
+    onError: ErrorHandler,
+    onSuccess: SuccessHandler
 ) => {
     const repositoryPath = getRepositoryPath(repositoryId);
 
@@ -72,7 +74,7 @@ export const showFileContent = (
 export const clone = (
     url: string,
     repositoryId: string,
-    onError: Callback,
-    onSuccess: Callback
-) => execWrapper(`git clone ${url} ${repositoryId || ""}`, process.env.DIR, onError, onSuccess);
+    onError: ErrorHandler,
+    onSuccess: SuccessHandler
+) => execWrapper(`git clone ${url} ${repositoryId || ""}`, REPOS_ROOT, onError, onSuccess);
 

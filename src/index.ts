@@ -1,25 +1,25 @@
 import * as express from 'express';
-import * as fs from 'fs';
 import repos from './api/repos';
+import { REPOS_ROOT } from './env';
 
 const app = express();
 
-
-const allowCrossDomain = function(req, res, next) {
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin");
+const allowCrossDomain = function(
+    req: express.Request, 
+    res: express.Response,
+    next: express.NextFunction
+) {
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin"
+    );
     res.header("Access-Control-Allow-Origin", "*");
     next();
 }
 
 app.use(allowCrossDomain);
 
-if (process.argv.length <= 2 || !fs.existsSync(process.argv[2])) {
-    console.log("There is should be path of an existed directory in args");
-    process.exit(-1);
-}
-
-process.env.DIR = process.argv[2];
-console.log("Seted process.env.DIR: " + process.env.DIR);
+console.log("Seted process.env.DIR: " + REPOS_ROOT);
 
 app.use('/api/repos', repos);
 

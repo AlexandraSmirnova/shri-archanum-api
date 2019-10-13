@@ -1,22 +1,22 @@
 import * as  express from 'express';
 import * as  fs from 'fs';
 import * as  path from 'path';
-import * as  gitUtils from '../utils/gitUtils';
+import { ErrorHandler, log, diff, showTree, showFileContent, clone } from '../utils/gitUtils';
 import { isDirectory, getRepositoryPath, deleteFolderRecursive } from '../utils/fsUtils';
-
+import { REPOS_ROOT } from '../env';
 
 const router = express.Router();
 
 router.use(express.json());
 
 router.get('/', (req, res) => {
-    fs.readdir(process.env.DIR, (err, items) => {
+    fs.readdir(REPOS_ROOT, (err: NodeJS.ErrnoException | null, items: string[]) => {
         if (err) {
             res.status(404).end();
         }
 
-        const repos = items.filter((item) => {
-            const dirPath = path.join(process.env.DIR, item);
+        const repos = items.filter((item: string) => {
+            const dirPath = path.join(REPOS_ROOT, item);
 
             return isDirectory(dirPath) && fs.existsSync(path.join(dirPath, '.git'))
                 && isDirectory(path.join(dirPath, '.git'));
@@ -27,7 +27,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:repositoryId/commits/:commitHash?', (req, res) => {
-    const onError = (err: string) => res.status(404).end();
+    const onError: ErrorHandler = () => res.status(404).end();
     const onSuccess = (out: string) => {
         const info = out.split('\n')
             .filter((i) => i !== "")
@@ -49,25 +49,25 @@ router.get('/:repositoryId/commits/:commitHash?', (req, res) => {
         res.json(info);
     }
 
-    gitUtils.log(req.params.repositoryId, req.params.commitHash, '--pretty="%H,%ad,%an,%s"', onError, onSuccess);
+    log(req.params.repositoryId, req.params.commitHash, '--pretty="%H,%ad,%an,%s"', onError, onSuccess);
 });
 
 router.get('/:repositoryId/commits/:commitHash/diff', (req, res) => {
-    const onError = (err: string) => res.status(404).end();
+    const onError: ErrorHandler = () => res.status(404).end();
     const onSuccess = (out: string) => {
         res.json({ diff: out });
     }
 
-    gitUtils.diff(req.params.repositoryId, req.params.commitHash, onError, onSuccess);
+    diff(req.params.repositoryId, req.params.commitHash, onError, onSuccess);
 });
 
 router.get(['/:repositoryId/', '/:repositoryId/tree/:commitHash/:path([^/]*)?'], (req, res) => {
-    const onError = (err: string) => res.status(404).end();
+    const onError: ErrorHandler = () => res.status(404).end();
     const onSuccess = (out: string) => {
         const result = out.split('\n')
             .filter((item) => item)
             .map((item) => {
-                const itemPath = path.join(process.env.DIR, req.params.repositoryId, item);
+                const itemPath = path.join(REPOS_ROOT, req.params.repositoryId, item);
 
                 return {
                     name: item.substr(item.lastIndexOf('/') + 1),
@@ -82,16 +82,16 @@ router.get(['/:repositoryId/', '/:repositoryId/tree/:commitHash/:path([^/]*)?'],
         res.json(result);
     }
 
-    gitUtils.showTree(req.params.repositoryId, req.params.commitHash, req.params.path, onError, onSuccess);
+    showTree(req.params.repositoryId, req.params.commitHash, req.params.path, onError, onSuccess);
 });
 
 router.get('/:repositoryId/blob/:commitHash?/:pathToFile([^/]*)', (req, res) => {
-    const onError = (err: string) => res.status(404).end();
+    const onError: ErrorHandler = () => res.status(404).end();
     const onSuccess = (out: string) => {
         res.json(JSON.stringify(out.split('\n')));
     }
 
-    gitUtils.showFileContent(req.params.repositoryId, req.params.commitHash, req.params.pathToFile, onError, onSuccess);
+    showFileContent(req.params.repositoryId, req.params.commitHash, req.params.pathToFile, onError, onSuccess);
 });
 
 router.delete('/:repositoryId', (req, res) => {
@@ -106,14 +106,14 @@ router.delete('/:repositoryId', (req, res) => {
 });
 
 router.post('/:repositoryId?', (req, res) => {
-    const onError = (err: string) => {
+    const onError: ErrorHandler = () => {
         res.status(404).end()
     };
     const onSuccess = (out: string) => {
         res.send(`Repository ${req.body.url} successfully added`);
     }
 
-    gitUtils.clone(req.body.url, req.params.repositoryId, onError, onSuccess);
+    clone(req.body.url, req.params.repositoryId, onError, onSuccess);
 });
 
 export default router;

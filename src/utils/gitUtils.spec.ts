@@ -1,21 +1,30 @@
 import * as child from 'child_process';
 import { mocked } from 'ts-jest/utils'
-import { log, diff, showTree, showFileContent } from './gitUtils';
+import { log, diff, showTree, showFileContent, ErrorHandler, SuccessHandler } from './gitUtils';
 
 
 jest.mock('../utils/fsUtils', () => ({
     getRepositoryPath: jest.fn((arg) => arg),
 }));
 
+jest.mock('../env', jest.fn());
+
 jest.mock('child_process');
+
 const mockedExec = mocked(child.exec);
 
-const getExecMock = (stderr, stdout) =>
-    (command: string, options: object, callback): child.ChildProcess =>
+const getExecMock = (err: string, stdout: string) =>
+    (
+        command: string,
+        options: object | undefined | null,
+        callback?: (error: child.ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => void
+    ): child.ChildProcess =>
         Promise.resolve()
-            .then(() => callback(stderr, stdout)) as unknown as child.ChildProcess;
+            .then(() => callback 
+                && callback(err as unknown as child.ExecException, stdout, '')
+            ) as unknown as child.ChildProcess;
 
-const defaultExecMock = getExecMock(null, 'test string');
+const defaultExecMock = getExecMock('', 'test string');
 
 describe('test log', () => {
     beforeEach(() => {
@@ -24,7 +33,7 @@ describe('test log', () => {
 
     it('should correct handle git answer', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -34,10 +43,10 @@ describe('test log', () => {
     })
 
     it('should correct handle empty git answer', async () => {
-        mockedExec.mockImplementation(getExecMock(null, ''));
+        mockedExec.mockImplementation(getExecMock('', ''));
 
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -47,10 +56,10 @@ describe('test log', () => {
     });
 
     it('should run onError handler if error', async () => {
-        mockedExec.mockImplementation(getExecMock('error', null));
+        mockedExec.mockImplementation(getExecMock('error', ''));
 
         let result = null;
-        const onError = (response) => {
+        const onError: ErrorHandler = (response) => {
             result = response
         }
 
@@ -61,7 +70,7 @@ describe('test log', () => {
 
     it('should run onSuccess if commitHash is undefined', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response
         }
 
@@ -79,7 +88,7 @@ describe('test diff', () => {
 
     it('should correct handle git answer', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -89,10 +98,10 @@ describe('test diff', () => {
     })
 
     it('should correct handle empty git answer', async () => {
-        mockedExec.mockImplementation(getExecMock(null, ''));
+        mockedExec.mockImplementation(getExecMock('', ''));
 
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -102,9 +111,9 @@ describe('test diff', () => {
     });
 
     it('should run onError handler if error', async () => {
-        mockedExec.mockImplementation(getExecMock('error', null));
+        mockedExec.mockImplementation(getExecMock('error', ''));
         let result = null;
-        const onError = (response) => {
+        const onError: ErrorHandler = (response) => {
             result = response
         }
 
@@ -122,7 +131,7 @@ describe('test showTree', () => {
 
     it('should correct handle git answer', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -132,10 +141,10 @@ describe('test showTree', () => {
     })
 
     it('should correct handle empty git answer', async () => {
-        mockedExec.mockImplementation(getExecMock(null, ''));
+        mockedExec.mockImplementation(getExecMock('', ''));
 
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -145,10 +154,10 @@ describe('test showTree', () => {
     });
 
     it('should run onError handler if error', async () => {
-        mockedExec.mockImplementation(getExecMock('error', null));
+        mockedExec.mockImplementation(getExecMock('error', ''));
 
         let result = null;
-        const onError = (response) => {
+        const onError: ErrorHandler = (response) => {
             result = response
         }
 
@@ -159,7 +168,7 @@ describe('test showTree', () => {
 
     it('should correct work if hash is undefined', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response
         }
 
@@ -170,7 +179,7 @@ describe('test showTree', () => {
 
     it('should correct work if args is undefined', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response
         }
 
@@ -183,12 +192,12 @@ describe('test showTree', () => {
 
 describe('test showFileContent', () => {
     beforeEach(() => {
-        mockedExec.mockImplementation(defaultExecMock );;
+        mockedExec.mockImplementation(defaultExecMock);
     });
 
     it('should correct handle git answer', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -198,10 +207,10 @@ describe('test showFileContent', () => {
     });
 
     it('should correct handle empty git answer', async () => {
-        mockedExec.mockImplementation(getExecMock(null, ''));
+        mockedExec.mockImplementation(getExecMock('', ''));
 
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response;
         }
 
@@ -212,7 +221,7 @@ describe('test showFileContent', () => {
 
     it('should correct work if hash is undefined', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response
         }
 
@@ -223,7 +232,7 @@ describe('test showFileContent', () => {
 
     it('should correct work if path is undefined', async () => {
         let result = null;
-        const onSuccess = (response) => {
+        const onSuccess: SuccessHandler = (response) => {
             result = response
         }
 
