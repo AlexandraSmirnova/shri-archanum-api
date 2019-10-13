@@ -116,5 +116,5 @@ router.post('/:repositoryId?', (req, res) => {
     gitUtils.clone(req.body.url, req.params.repositoryId, onError, onSuccess);
 });
 
-module.exports = router;
+export default router;
 

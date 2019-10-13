@@ -1,6 +1,6 @@
-const express = require('express');
-const fs = require('fs');
-const repos = require('./api/repos');
+import * as express from 'express';
+import * as fs from 'fs';
+import repos from './api/repos';
 
 const app = express();
 
